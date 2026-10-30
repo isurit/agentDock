@@ -1,0 +1,14 @@
+import { mkdtempSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+const dir = mkdtempSync(join(tmpdir(), 'agentdock-sample-'));
+cpSync(fileURLToPath(new URL('../examples/android-sample', import.meta.url)), dir, { recursive: true });
+const git = args => execFileSync('git', args, { cwd: dir, stdio: 'pipe' });
+git(['init', '-b', 'main']); git(['add', '.']);
+git(['-c', 'user.name=Synthetic Sample', '-c', 'user.email=sample@example.invalid', '-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', 'commit', '-m', 'Synthetic fixture']);
+const path = join(dir, 'MainActivity.kt');
+writeFileSync(path, readFileSync(path, 'utf8').replace('Hello from the local sample', 'Hello from AgentDock'));
+console.log('Synthetic sample created locally. Register this directory:');
+console.log(dir);
