@@ -3,13 +3,15 @@
 Read docs/PROJECT_HANDOFF.md and docs/DECISIONS.md before changes.
 The original handoff is historical; later user decisions recorded in DECISIONS take precedence.
 
-## Local-only privacy (confirmed 2026-10-30)
-- Personal information, registered project paths, Tasks, Session metadata, History, Memory, prompts, logs, diffs and artifacts stay on the current PC, outside Git repositories.
-- Never transmit local filenames, extensions, paths, directory names, import source names or raw import lines to external APIs, models, agents or telemetry.
-- Real Codex/Claude/Gemini analysis and modification are blocked. Version probes only are permitted. Do not add a hidden environment switch to bypass this policy.
-- GitHub receives only generic product source, documentation, lockfiles and synthetic samples. No runtime DB, logs, credentials or company source. Never copy credentials across accounts.
-- No automatic Git push, company feedback upload, telemetry, remote enrichment or cloud hosting.
-- Home macOS -> personal GitHub -> company Ubuntu is the only distribution direction. Company changes remain local; general issues are reproduced at home without company data.
+## Approved provider execution and local private storage (confirmed 2026-10-30)
+- The user's latest explicit clarification supersedes the earlier blanket external-transfer prohibition for AgentDock's approved CLI workflow.
+- Work-relevant source, filenames, relative paths, imports, diffs and selected Task context may be sent to the provider chosen by the user through the existing, company-approved Enterprise CLI on that PC.
+- Company policy and managed CLI restrictions still apply. AgentDock cannot verify Enterprise entitlement from a version probe.
+- Personal information, registered project paths, Tasks, Session metadata, History, Memory, prompts, logs, diffs and artifacts are persisted only on the current PC, outside Git repositories. No remote telemetry or home synchronization.
+- GitHub receives only generic product source, documentation, lockfiles and synthetic samples. Never upload company source, runtime records or credentials, or send them to the home PC.
+- Use the current OS account's existing CLI OAuth. Never read, collect or copy credential stores. Do not require separate API keys or add paid API fallbacks.
+- No automatic Git push, company feedback upload, remote enrichment or cloud hosting.
+- Home macOS -> personal GitHub -> company Ubuntu remains the only distribution direction. Company feedback must be generic and permitted by company policy.
 
 ## Implementation
 - Task is authoritative; provider sessions are separate optional execution records.

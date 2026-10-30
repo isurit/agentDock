@@ -47,6 +47,8 @@ export class Store {
     this.db.prepare('INSERT INTO runs VALUES(?,?,?,?,?,?,?,?,?)').run(r.id, taskId, agent, r.model, r.status, r.startedAt, null, null, null);
     this.status(taskId, 'running'); return r;
   }
+  runStatus(id: string, status: Status) { const run = this.run(id); this.db.prepare('UPDATE runs SET status=? WHERE id=?').run(status, id); this.status(run.taskId, status); }
+  session(id: string, providerSessionId: string, model?: string) { this.db.prepare('UPDATE runs SET providerSessionId=?, model=COALESCE(?,model) WHERE id=?').run(providerSessionId, model ?? null, id); }
   finish(id: string, status: Status, error: string | null = null) {
     const run = this.run(id); this.db.prepare('UPDATE runs SET status=?,endedAt=?,error=? WHERE id=?').run(status, now(), error, id); this.status(run.taskId, status);
   }
@@ -59,7 +61,7 @@ export class Store {
     return this.db.prepare('SELECT * FROM events WHERE taskId=? AND seq>? ORDER BY seq LIMIT 1000').all(taskId, after).map(row => ({ ...row, data: JSON.parse(row.data as string) })) as unknown as Event[];
   }
   recentResults(taskId: string): Event[] {
-    return this.db.prepare("SELECT * FROM events WHERE taskId=? AND type IN ('message','run.completed','run.failed') ORDER BY seq DESC LIMIT 12").all(taskId).reverse().map(row => ({ ...row, data: JSON.parse(row.data as string) })) as unknown as Event[];
+    return this.db.prepare("SELECT * FROM events WHERE taskId=? AND type IN ('message','run.completed','run.failed','run.started') ORDER BY seq DESC LIMIT 12").all(taskId).reverse().map(row => ({ ...row, data: JSON.parse(row.data as string) })) as unknown as Event[];
   }
   memories(projectId: string, taskId?: string): Memory[] {
     return this.db.prepare('SELECT * FROM memories WHERE projectId=? AND (taskId IS NULL OR taskId=?) ORDER BY updatedAt').all(projectId, taskId ?? null) as unknown as Memory[];
@@ -74,6 +76,12 @@ export class Store {
   handoffs(taskId: string): Handoff[] { return this.db.prepare('SELECT data FROM handoffs WHERE taskId=? ORDER BY rowid').all(taskId).map(row => JSON.parse(row.data as string)); }
   recover() {
     for (const row of this.db.prepare("SELECT id,taskId FROM runs WHERE status IN ('running','queued','awaiting_approval')").all()) {
+      const pending = new Set<string>();
+      for (const event of this.db.prepare("SELECT type,data FROM events WHERE runId=? AND type IN ('approval.requested','approval.resolved','approval.expired') ORDER BY seq").all(row.id as string)) {
+        const value = JSON.parse(event.data as string);
+        if (typeof value.id === 'string') { if (event.type === 'approval.requested') pending.add(value.id); else pending.delete(value.id); }
+      }
+      for (const id of pending) this.event(row.taskId as string, row.id as string, 'approval.expired', { id, reason: 'interrupted_by_restart' });
       this.finish(row.id as string, 'failed', 'interrupted_by_restart');
       this.event(row.taskId as string, row.id as string, 'run.interrupted', { reason: 'interrupted_by_restart', automaticallyRetried: false });
     }

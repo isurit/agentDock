@@ -1,51 +1,45 @@
-# Implementation handoff — 2026-10-30
+# Implementation handoff — v0.2.0
 
-## Policy and scope
+## Current authorization
 
-The user confirmed PC-local private storage and explicitly retained the existing external-transfer prohibition. Real provider code execution is therefore blocked. This overrides the original real Codex milestone for now; do not bypass it or claim Mock as real integration.
+The user clarified and authorized company-approved Enterprise OAuth CLI execution. Task-relevant code, filenames, paths, imports, diffs and applicable context may go to the selected CLI provider. This supersedes v0.1's blanket provider-transfer prohibition for the approved workflow. Company source, private runtime data and credentials must never go to personal GitHub or the home PC. Storage remains PC-local and outside Git.
 
 ## Implemented
 
-- Independent local Git repository, npm workspaces and pinned Node 22.22.2.
-- React Dashboard and loopback Node HTTP/WebSocket service.
-- Local project registration; Task create/rename; durable goal, lifecycle, run history and timeline.
-- SQLite schema v1, event sequence replay and explicit interruption recovery.
-- User-confirmed Project/Task Memory and deterministic local Mock handoff with original references.
-- Mock run/stream/cancel; project-wide lock across Tasks.
-- Local tracked/staged Git Diff and untracked names, with no source synchronization.
-- Local numeric version probes for Codex/Claude/Gemini. Actual starts hard-denied at orchestrator and adapter boundaries.
-- Origin/Host/session-token checks, authenticated WebSocket invalidation, production CSP.
-- App data rejected inside Git repositories, including symlinked ancestors; runtime Git exclusions and privacy scan.
-- Synthetic Kotlin/Git sample generator, macOS/Ubuntu CI definition, architecture/security/operations documentation.
+- Existing Project/Task/History/Memory/Git Dashboard preserved, using the same SQLite schema v1. No data migration/deletion required.
+- Explicit actual Codex/Claude/Gemini selection when installed CLI options probe compatible; read-only default, per-run provider consent and optional model/current instruction. Auto stays Mock.
+- Codex App Server stdio: validated sandbox/user approval configuration, ephemeral thread, streamed responses, actual session/model persistence, commands/files events, one-time browser approval decisions and explicit error categories.
+- Claude/Gemini headless JSONL adapters: stdin prompts, native plan/edit policies, terminal success validation, permission failures, local session metadata. No bypass flags or browser approval bridge.
+- Goal, applicable user Memory, recent results and previous/current instructions handed off between runs/providers; raw History and context snapshots remain local.
+- Project execution lock, output/run time limits, process-group/descendant termination on handled cancellation/failure/completion, approval expiration and no automatic retry after restart.
+- Product/runtime Git privacy checks preserved; known shell API keys omitted from child environments; credentials remain CLI-managed.
 
-## Verification evidence (local verification before first GitHub delivery)
+## Verification
 
-| Area | Status |
+| Area | Evidence/status |
 |---|---|
-| macOS clean lockfile install (`npm ci`) | Passed |
-| TypeScript + production web build (`npm run build`) | Passed |
-| Local unit/integration tests (`npm test`) | 8 passed |
-| Product/runtime separation scan (`npm run privacy`) | Passed; manual personal-data review still required before Push |
-| Browser Project -> Task -> Memory -> Mock twice -> Context | Passed using synthetic inputs |
-| Browser local Git Diff | Passed with synthetic working-tree change |
-| Browser reload and full server restart -> saved History | Passed |
-| Production browser console error check | No errors observed during final restart check |
-| Codex CLI installation | Local version 0.154.0 confirmed; model/OAuth execution not tested |
-| Claude/Gemini installation | Executables absent from current server PATH |
-| GitHub Actions macOS/Ubuntu | Workflow written, not run; no Push performed |
-| Company Ubuntu | Not verified |
-| Real provider analysis/editing and provider handoff | Blocked by confirmed policy, not implemented |
-| Android Gradle build/run | Not attempted; sample is not a buildable Android app |
+| v0.1 macOS + Ubuntu CI | Passed for delivery 103bbf4 |
+| v0.1 company Ubuntu | User confirmed server/UI, Project/Task/Mock/Git Diff and restart persistence |
+| v0.2 TypeScript + production build | Passed locally |
+| v0.2 offline unit/integration tests | 14 passed locally, no model account needed |
+| Codex 0.154.0 macOS real provider | Actual synthetic read-only read and workspace-write file change passed; existing CLI login, model selected explicitly from catalog |
+| Codex actual local Git Diff | Synthetic changed-file check included in opt-in live smoke |
+| v0.1 DB opened with v0.2 | Existing Project/Task/History restored in browser |
+| v0.2 browser provider selection | Codex enabled; absent Claude/Gemini disabled; consent required before real execution |
+| Claude/Gemini live Enterprise execution | Not verified at home; executables absent |
+| Company Ubuntu real CLI execution | Not yet verified; follow UBUNTU_VALIDATION.md |
+| v0.2 GitHub CI | Not yet run at this local verification point |
 
-Tests cover persistence and Context isolation, Mock source non-modification, cancellation/project lock, interrupted-run recovery, hard-denied provider starts, cross-project Memory rejection, symlink escape, HTTP/WS authentication, event replay, Git-contained data rejection and staged/working/untracked snapshot behavior.
+Tests include storage/restoration, memory/project isolation, Mock non-modification, real-run consent, Codex security contract/model catalog, stdin/context correctness, headless terminal success/failure, one-time/stale/cross-Task approval decisions, cancellation of pending approval, process-group cleanup including a child ignoring SIGTERM, provider Session persistence and Task context across adapter selection. Fixtures are synthetic local processes, not real model evidence.
 
-## Remaining work
+## Limits and next work
 
-- Browser smoke automation in CI, efficient large timeline pagination and retention/delete tooling.
-- Backup/restore UI and automatic backup before future DB migrations.
-- Artifacts, Approval persistence, Logcat ingestion, Gradle result linking and richer task templates.
-- Hardened company pull-only update tooling. The current app has no Git push/fetch function, but does not restrict the user's independent terminal.
-- Actual CLI adapters, provider Session resume, sandbox and browser approval integration only if the owner explicitly changes external-transfer policy.
-- Company machine/backup/model policy and actual Ubuntu verification.
+- Claude/Gemini require actual CLI/version/OAuth validation in the approved company environment. Their native permissions and isolation differ from Codex.
+- Codex's initial configured model was rejected by the account; an explicit CLI catalog selection succeeded. No runtime hardcoded model or silent fallback is introduced.
+- No native session resume across runs, parallel review/worktrees, Logcat, Gradle artifact manager, retention/delete UI or automatic migration backup.
+- In-sandbox Codex commands do not all require prompts; workspace-write run consent authorizes them. Extra permissions use the inline bridge; read-only escalation and out-of-project write grants are refused.
+- Provider quota remains Unknown. Enterprise entitlement is not inferred from probes.
+- Abrupt OS/server SIGKILL may prevent controlled process cleanup. Restart records interrupted execution and expires approvals without auto-retrying; inspect uncertain CLI work before manually starting another run. No unsafe PID-based orphan killing is attempted.
+- AgentDock has no company-to-home or personal GitHub sync feature. Native CLI configuration/hooks remain subject to company policy; this app is not an outbound OS firewall.
 
-The owner authorized the first GitHub delivery after local verification. Only product code, documentation, lockfiles and synthetic samples are included; runtime data stays local. Git history identifies the delivered revision. The CI results in this table describe the pre-push verification point; inspect GitHub Actions for the delivered revision. No cloud app deployment or credential-store access was performed. Preview data and the synthetic Git fixture remained outside the product repository. The preview server was stopped after verification. New development should follow DECISIONS.md and AGENTS.md.
+Public deliveries include only generic source/docs/lockfiles/synthetic fixtures. Live source, diagnostic payloads, prompts, runtime paths, account metadata and DBs stay local. See DECISIONS.md, SECURITY.md and CLI_COMPATIBILITY.md for the current rules.

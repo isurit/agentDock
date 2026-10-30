@@ -22,7 +22,7 @@ const port = Number(process.env.PORT ?? 4317);
 if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Invalid port');
 runtime.server.listen(port, '127.0.0.1', () => {
   const address = runtime.server.address();
-  if (address && typeof address !== 'string') console.log(`AgentDock: http://127.0.0.1:${address.port} (local-only; external execution disabled)`);
+  if (address && typeof address !== 'string') console.log(`AgentDock: http://127.0.0.1:${address.port} (local storage; approved CLI execution)`);
 });
 let stopping = false;
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, async () => { if (stopping) return; stopping = true; await vite?.close(); await runtime.close(); });

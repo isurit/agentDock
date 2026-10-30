@@ -1,6 +1,6 @@
 # Security and privacy
 
-Current policy is local-only. No personal/company data is uploaded to GitHub or CLI providers. Real adapter starts are hard-denied. No telemetry, remote fonts, model SDK calls, Git push/fetch or credential-reading endpoints exist.
+Approved Enterprise CLI providers may receive the work-relevant source and selected Task context after explicit per-run consent. Company source and private runtime information must not be uploaded to personal GitHub or the home PC. No telemetry, remote fonts, model SDK calls, Git push/fetch or credential-reading endpoints exist.
 
 ## Storage
 
@@ -16,8 +16,18 @@ Trusted local software can obtain the token; this is protection against hostile 
 
 ## Execution and Git
 
-Only Mock executes Task requests. CLI probes call --version without shell or credentials. Read-only Git status/diff commands disable external diff/textconv and fsmonitor hooks. Output size and timeout limits fail closed with a generic local error. Untracked file contents are not collected. Project registration does not copy or synchronize source.
+Auto remains Mock. Explicit real selections use the existing CLI login and never collect credentials. Probes use version/help; Codex can list models through its protocol. No API-key fallback is implemented. Read-only Git status/diff commands disable external diff/textconv and fsmonitor hooks. Output size and timeout limits fail closed with a generic local error. Untracked file contents are not collected. Project registration does not copy or synchronize source.
 
 The app never pushes. Product .gitignore and privacy checks reject known runtime/credential file patterns. They are defense in depth: review staged content before every explicitly authorized push. Arbitrary text can contain personal data that a filename check cannot detect.
 
 Company mode is an operational policy today; a hardened pull-only updater and outbound OS firewall are not implemented. Company users should not configure Push credentials for the personal product remote.
+
+## Real execution boundaries
+
+The default mode is read-only. Per-run workspace-write consent permits native in-project editing. Codex runs with an OS sandbox, user/on-request approvals and turn-level command network disabled. Ordinary in-sandbox commands can run without individual prompts; escalation requests are shown inline. Read-only escalation, outside-project write grants and unsupported interactive RPCs fail closed. Approvals are one-time, scoped and expire when the process ends. A restart never resumes uncertain execution.
+
+Claude/Gemini use plan or native edit policies without a browser approval bridge. Claude's built-in shell tools and MCP tools are excluded by this adapter; existing CLI hooks/settings may still execute. Gemini auto_edit does not imply every command is approved; unavailable headless permissions fail. These adapters do not provide a verified OS sandbox boundary equivalent to Codex on Ubuntu. Do not bypass them with yolo/full-access flags. They need company validation before relying on their restrictions.
+
+AgentDock has no personal GitHub upload/sync/telemetry route. A selected CLI has its own tools/settings, so the prompt prohibits push/publish and unrelated exfiltration, but this is not an outbound OS firewall. Trust only company-approved CLI configuration, projects and provider endpoints. Managed settings can affect tool, hook, authentication and model behavior; a numeric version does not prove Enterprise entitlement. Browser sessions and company runtime data must stay on that PC.
+
+Run processes have output/time limits and owned process-group termination. Known API-key environment variables are omitted to prefer existing OAuth; configured CLI helpers/provider settings still require company review. Sensitive raw stderr is not persisted; provider diagnostics are bounded/redacted. Never upload runtime evidence or logs to public CI.

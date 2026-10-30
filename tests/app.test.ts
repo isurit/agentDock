@@ -14,7 +14,7 @@ import { within, gitSnapshot } from '../packages/project/src/index.ts';
 import { execFileSync } from 'node:child_process';
 import { prepareDataDirectory } from '../apps/server/src/data-dir.ts';
 
-async function fixture() { const dir = await mkdtemp(join(tmpdir(), 'agentdock-test-')); return { dir, path: join(dir, 'state', 'test.sqlite'), cleanup: () => rm(dir, { recursive: true, force: true }) }; }
+async function fixture() { const dir = await realpath(await mkdtemp(join(tmpdir(), 'agentdock-test-'))); return { dir, path: join(dir, 'state', 'test.sqlite'), cleanup: () => rm(dir, { recursive: true, force: true }) }; }
 
 test('History, Memory and local handoff survive reopening; Mock never edits project files', async () => {
   const f = await fixture(); let store = new Store(f.path);
@@ -61,14 +61,14 @@ test('Interrupted runs become failed with an explicit reason, never retried', as
   } finally { store.close(); await f.cleanup(); }
 });
 
-test('All actual providers are denied before any process or run is created', async () => {
+test('Actual providers require explicit consent before any process or run is created', async () => {
   const f = await fixture(); const store = new Store(f.path);
   try {
     const p = store.addProject('sample', f.dir), t = store.addTask({ projectId: p.id, title: 'test', goal: 'private' });
     const adapters = registry(); const engine = new Orchestrator(store, adapters, () => {});
     for (const agent of ['codex', 'claude', 'gemini'] as const) {
-      assert.throws(() => engine.start(t.id, agent), /external_transfer_forbidden/);
-      await assert.rejects(adapters.get(agent)!.start({} as never), /external_transfer_forbidden/);
+      assert.throws(() => engine.start(t.id, agent), /provider_consent_required/);
+      await assert.rejects(adapters.get(agent)!.start({ options: { providerConsent: false } } as never), /provider_consent_required/);
     }
     assert.equal(store.runs(t.id).length, 0);
   } finally { store.close(); await f.cleanup(); }

@@ -1,6 +1,6 @@
 {
   "name": "agentdock",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -17,7 +17,8 @@
     "test": "tsx --test tests/*.test.ts",
     "check": "tsc --noEmit",
     "privacy": "node scripts/privacy.mjs",
-    "sample": "node scripts/sample.mjs"
+    "sample": "node scripts/sample.mjs",
+    "verify:codex": "tsx scripts/verify-codex.ts"
   },
   "dependencies": {
     "express": "^5.1.0",
