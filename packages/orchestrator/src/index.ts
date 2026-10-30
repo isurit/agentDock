@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { realpathSync } from 'node:fs';
 import type { AgentAdapter, AgentId, Approval, Event, Handoff, RunOptions } from '../../core/src/index.ts';
+import { recentGitHistory } from '../../project/src/index.ts';
 import { CliError } from '../../agent-adapters/src/process.ts';
 import type { Store } from '../../../apps/server/src/store.ts';
 export class Orchestrator {
@@ -27,9 +28,14 @@ export class Orchestrator {
     const controller = new AbortController();
     const entry = { runId: run.id, taskId, controller, done: Promise.resolve() };
     this.active.set(project.id, entry);
-    this.emit(taskId, run.id, 'run.started', { agent, model: model ?? null, mode: options.mode, providerConsent: options.providerConsent, instruction: options.instruction ?? null, reason: selection === 'auto' ? 'Auto defaults to Mock; choose a provider explicitly' : 'Manual provider selection', handoffId: context.id });
+    this.emit(taskId, run.id, 'run.started', { agent, model: model ?? null, mode: options.mode, providerConsent: options.providerConsent, instruction: options.instruction ?? null, includeGitHistory: options.includeGitHistory === true, reason: selection === 'auto' ? 'Auto defaults to Mock; choose a provider explicitly' : 'Manual provider selection', handoffId: context.id });
     entry.done = Promise.resolve().then(async () => {
       try {
+        if (controller.signal.aborted) throw new CliError('cancelled');
+        if (options.includeGitHistory) {
+          try { context.gitHistory = await recentGitHistory(project.path); this.store.handoff(context); this.emit(taskId, run.id, 'context.git_history', { count: context.gitHistory.length, source: 'local_git', includes: 'subjects_and_hashes_only' }); }
+          catch { throw new CliError('git_history_unavailable'); }
+        }
         if (controller.signal.aborted) throw new CliError('cancelled');
         if (agent !== 'mock') { const capability = await adapter.probe(); if (!capability.runnable) throw new CliError(capability.reason ?? 'cli_unavailable'); this.emit(taskId, run.id, 'cli.detected', { agent, version: capability.version, approvalMode: capability.approvalMode ?? null }); }
         if (controller.signal.aborted) throw new CliError('cancelled');

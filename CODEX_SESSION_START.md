@@ -1,3 +1,5 @@
+> 역사적 초기 요청입니다. 현재 시작점은 README.md와 docs/COMPANY_START.md이며, 최신 사용자 결정은 docs/DECISIONS.md를 따릅니다.
+
 # Codex 세션 시작 프롬프트 — AgentDock
 
 이 저장소는 AgentDock: Claude Code CLI, Gemini CLI, Codex CLI를 기존 OAuth 로그인 상태로 사용하는 **로컬 웹 기반 멀티 에이전트 Android 개발 워크스페이스**다.

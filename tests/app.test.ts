@@ -10,7 +10,7 @@ import { Store } from '../apps/server/src/store.ts';
 import { createApp } from '../apps/server/src/app.ts';
 import { registry } from '../packages/agent-adapters/src/index.ts';
 import { Orchestrator } from '../packages/orchestrator/src/index.ts';
-import { within, gitSnapshot } from '../packages/project/src/index.ts';
+import { within, gitSnapshot, recentGitHistory } from '../packages/project/src/index.ts';
 import { execFileSync } from 'node:child_process';
 import { prepareDataDirectory } from '../apps/server/src/data-dir.ts';
 
@@ -137,6 +137,7 @@ test('Git snapshot includes local staged/working diffs and only names for untrac
     await writeFile(join(f.dir, 'untracked.txt'), 'UNTRACKED_CONTENT_MUST_NOT_BE_COLLECTED');
     const snapshot = await gitSnapshot(f.dir);
     assert.match(snapshot.diff, /working/); assert.match(snapshot.staged, /staged/); assert.match(snapshot.status, /untracked.txt/);
+    const history = await recentGitHistory(f.dir); assert.equal(history[0].subject, 'sample'); assert.ok(/^[a-f0-9]+$/.test(history[0].hash)); assert.ok(!JSON.stringify(history).includes('sample@example.invalid'));
     assert.equal(snapshot.untrackedContentsIncluded, false); assert.ok(!JSON.stringify(snapshot).includes('UNTRACKED_CONTENT_MUST_NOT_BE_COLLECTED'));
   } finally { await f.cleanup(); }
 });

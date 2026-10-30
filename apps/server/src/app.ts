@@ -4,7 +4,7 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import { z } from 'zod';
 import { projectInput, taskInput, runInput, memoryInput } from '../../../packages/core/src/index.ts';
-import { registerPath, gitSnapshot } from '../../../packages/project/src/index.ts';
+import { registerPath, gitSnapshot, recentGitHistory } from '../../../packages/project/src/index.ts';
 import { CodexAdapter } from '../../../packages/agent-adapters/src/codex.ts';
 import { registry } from '../../../packages/agent-adapters/src/index.ts';
 import { Orchestrator } from '../../../packages/orchestrator/src/index.ts';
@@ -40,6 +40,7 @@ export function createApp(databasePath: string) {
     try { res.json({ available: true, ...await gitSnapshot(project.path) }); }
     catch { res.json({ available: false, reason: 'Git unavailable, output too large, or project is not the repository root' }); }
   });
+  app.get('/api/projects/:id/history', async (req, res) => { try { res.json({ available: true, commits: await recentGitHistory(store.project(req.params.id).path) }); } catch { res.json({ available: false, commits: [], reason: 'git_history_unavailable' }); } });
   app.get('/api/tasks', (_req, res) => res.json(store.tasks()));
   app.post('/api/tasks', (req, res) => res.status(201).json(store.addTask(taskInput.parse(req.body))));
   app.get('/api/tasks/:id', (req, res) => {

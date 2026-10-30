@@ -37,3 +37,15 @@
 - Prompts go through stdio, not shell strings or process arguments. Known API-key environment variables are omitted to avoid accidental shell-key billing; managed CLI config still determines authentication.
 - 15-minute run timeout; cancellation interrupts Codex when possible, then terminates the owned POSIX process group and surviving descendants. No process or approval waiter may survive completion. Unknown server input requests fail explicitly instead of hanging or auto-approving.
 - Approval requests/decisions are durable events. Pending callbacks are live-process state, not resumable after restart. Interrupted runs fail, pending UI is cleared, and nothing auto-retries.
+
+## v0.3 continuation and diagnosis decisions
+
+The user asked for the maximum useful preparation at home, then local continuation with approved company tokens. Company development is authorized locally; the previous no-company-to-personal-GitHub rule remains. README and COMPANY_START are the next-agent entry point, with separate work log and known-issue evidence.
+
+Gemini 0.66.0 session initialization without an answer is a reported company failure, not an established root cause. New phases and generic stderr categories are observability fixes. Process I/O counters are not model progress. Native plan/shell permissions remain unchanged.
+
+Headless idle defaults to 180 seconds without meaningful message/tool progress, configurable to 30–900 seconds. Total timeout remains 900 seconds. Stderr-only retries do not extend idle forever. A valid terminal result with lingering process handles gets an explicit cleanup warning after 3 seconds and owned group termination; a normal nonzero exit remains a failure. Recoverable warning events are not fatal. No timeout auto-retry.
+
+Recent Git history is collected with fixed local read-only arguments (10 hashes/subjects, no author/email/body). UI-only viewing is local. Only explicit includeGitHistory plus provider consent sends this context through the selected CLI; it does not grant shell access or represent full commit diffs. Handoff stores the selected snapshot locally without a schema change.
+
+Partial messages are grouped per run/item, preserving raw events. UI refreshes are serialized/coalesced with a five-second active-run fallback. No provider raw diagnostic, company data or runtime evidence is added to the public product repository.

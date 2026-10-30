@@ -31,3 +31,13 @@ Claude/Gemini use plan or native edit policies without a browser approval bridge
 AgentDock has no personal GitHub upload/sync/telemetry route. A selected CLI has its own tools/settings, so the prompt prohibits push/publish and unrelated exfiltration, but this is not an outbound OS firewall. Trust only company-approved CLI configuration, projects and provider endpoints. Managed settings can affect tool, hook, authentication and model behavior; a numeric version does not prove Enterprise entitlement. Browser sessions and company runtime data must stay on that PC.
 
 Run processes have output/time limits and owned process-group termination. Known API-key environment variables are omitted to prefer existing OAuth; configured CLI helpers/provider settings still require company review. Sensitive raw stderr is not persisted; provider diagnostics are bounded/redacted. Never upload runtime evidence or logs to public CI.
+
+## v0.3 observability and continuation
+
+Generic stderr categories and byte counters may be persisted; raw stderr is not emitted into doctor/UI events. Known successful cached-credential notices are not authentication-failure evidence. No diagnostic report or live-smoke output is uploaded automatically. The opt-in smoke sends only its generated synthetic context to the user-selected provider through existing CLI authentication.
+
+Optional Git context contains recent hashes/subjects, not author emails, bodies or arbitrary shell input. Subjects can still be sensitive or hostile: attachment requires explicit user selection/consent and company policy; prompt text treats them as untrusted data. Local viewing does not itself authorize provider transmission.
+
+Timeout defaults can interrupt a legitimate long silent operation; inspect local state before retrying. A valid terminal result may require forced cleanup of lingering handles, which is recorded explicitly. Abrupt host failure/SIGKILL remains outside guaranteed controlled cleanup. No uncertain execution is automatically resent.
+
+Company-token product development remains local; it is not authorization to push company changes/data to the public personal repository. Preserve existing company work and use a local branch. Future publication needs a separate policy-compliant instruction and content review.

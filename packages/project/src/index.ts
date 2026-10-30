@@ -26,3 +26,16 @@ export async function gitSnapshot(root: string) {
   ]);
   return { status, diff, staged, untrackedContentsIncluded: false };
 }
+
+// Fixed, read-only arguments: no prompt-derived shell or arbitrary Git options.
+// Subjects and hashes only; no author email, commit body, remote URL or file content.
+export async function recentGitHistory(root: string) {
+  const options = { cwd: root, timeout: 10000, maxBuffer: 65536, env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_OPTIONAL_LOCKS: '0' } };
+  const { stdout: top } = await exec('git', ['rev-parse', '--show-toplevel'], options);
+  if (await realpath(top.trim()) !== await realpath(root)) throw new Error('Register the Git root');
+  const { stdout } = await exec('git', ['--no-pager', '-c', 'core.fsmonitor=false', 'log', '-10', '--no-show-signature', '--no-decorate', '--format=%h%x1f%s%x1e', '--'], options);
+  return stdout.split('\x1e').map(record => record.trim()).filter(Boolean).map(record => {
+    const separator = record.indexOf('\x1f');
+    return { hash: record.slice(0, separator), subject: record.slice(separator + 1).slice(0, 500) };
+  }).filter(commit => /^[a-f0-9]{4,64}$/.test(commit.hash));
+}

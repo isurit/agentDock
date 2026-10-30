@@ -16,7 +16,7 @@ export class CodexAdapter implements AgentAdapter {
   async models(cwd: string): Promise<{ id: string; name: string; isDefault: boolean }[]> {
     const peer = new RpcPeer(this.command, ['app-server', '--stdio', '-c', 'analytics.enabled=false'], cwd, message => { if (message.id !== undefined) peer.unsupported(message.id); }, () => {});
     try {
-      await peer.call('initialize', { clientInfo: { name: 'agentdock', title: 'AgentDock', version: '0.2.0' }, capabilities: {} }); peer.notify('initialized');
+      await peer.call('initialize', { clientInfo: { name: 'agentdock', title: 'AgentDock', version: '0.3.0' }, capabilities: {} }); peer.notify('initialized');
       const models: { id: string; name: string; isDefault: boolean }[] = []; let cursor: string | null = null;
       for (let page = 0; page < 10; page++) {
         const response = await peer.call('model/list', { cursor, limit: 100, includeHidden: false });
@@ -75,7 +75,7 @@ export class CodexAdapter implements AgentAdapter {
     signal.addEventListener('abort', abort, { once: true });
     const timeout = setTimeout(() => { complete(new CliError('run_timeout')); void peer.process.stop(); }, 15 * 60 * 1000);
     try {
-      await peer.call('initialize', { clientInfo: { name: 'agentdock', title: 'AgentDock', version: '0.2.0' }, capabilities: {} }); peer.notify('initialized');
+      await peer.call('initialize', { clientInfo: { name: 'agentdock', title: 'AgentDock', version: '0.3.0' }, capabilities: {} }); peer.notify('initialized');
       const sandbox = options.mode === 'workspace-write' ? 'workspace-write' : 'read-only';
       const thread = await peer.call('thread/start', { cwd: project.path, ...(run.model ? { model: run.model } : {}), approvalPolicy: 'on-request', approvalsReviewer: 'user', sandbox, ephemeral: true });
       threadId = thread.thread?.id;

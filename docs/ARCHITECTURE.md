@@ -40,3 +40,13 @@ Claude/Gemini use their documented headless flags and native noninteractive poli
 ## Deliberate limits
 
 No provider-native resume across runs, approval bridge for Claude/Gemini, parallel review, Gradle runner, Logcat ingestion or artifact manager has been implemented. Codex's OS sandbox is distinct from model/provider network access and inherited CLI plugins/configuration. Do not claim all three adapters provide identical sandbox isolation. Future schema changes require migration and backup; this update retains schema v1 and uses durable events for execution policy/approvals.
+
+## v0.3 diagnostics and Git Context
+
+Headless execution now tracks input/session/model-wait/response/tool/result phases, bounded generic stderr categories and transport byte counts. The frontend shows elapsed time and refreshes active runs periodically; refresh requests are serialized/coalesced so streaming invalidations cannot continuously invalidate an in-flight render. Partial messages are combined per run/item without changing persisted evidence.
+
+The default meaningful-event idle limit is 180 seconds (environment override 30–900), separate from the 15-minute total limit. Transport stderr alone does not reset semantic progress. A declared terminal result followed by lingering process handles emits cli.cleanup, preserves declared success/error and terminates the owned process group after a short grace period. A nonzero exit before that remains failure. These mechanisms do not diagnose the actual company's Gemini issue by themselves.
+
+GET /api/projects/:id/history reads current HEAD's latest 10 hashes/subjects locally. Optional includeGitHistory on a run collects the same bounded data into Handoff before adapter execution; consent and provider selection stay unchanged. Context attachment failure is explicit git_history_unavailable, never invented history. This is not provider shell approval, full commit diff analysis or a Git fetch.
+
+Doctor probes generic environment/capability information without source or credentials. Opt-in headless smoke exercises a disposable synthetic project and local Task orchestration; it is not part of CI. See COMPANY_START and KNOWN_ISSUES for continuation.

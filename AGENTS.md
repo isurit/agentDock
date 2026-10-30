@@ -1,6 +1,6 @@
 # AgentDock development rules
 
-Read docs/PROJECT_HANDOFF.md and docs/DECISIONS.md before changes.
+Start with README.md, then docs/COMPANY_START.md and docs/DECISIONS.md. Read docs/PROJECT_HANDOFF.md for the full original product requirements.
 The original handoff is historical; later user decisions recorded in DECISIONS take precedence.
 
 ## Approved provider execution and local private storage (confirmed 2026-10-30)
@@ -27,3 +27,11 @@ The original handoff is historical; later user decisions recorded in DECISIONS t
 ## Verification
 Run npm test, npm run build and npm run privacy before handoff. Document implementation, macOS verification, Ubuntu CI and company verification separately. A workflow definition does not mean CI passed.
 Do not commit or push unless requested. Do not modify the parent Dashboard repository.
+
+## Company continuation
+- The owner requested development continuation using company-approved CLI tokens. Product development on the company PC is allowed locally; this does not authorize company-to-personal-GitHub Push or source/log transfer to the home PC.
+- Create a local development branch if needed. Company fixes and runtime evidence remain on the company machine until a separate policy-compliant publication instruction exists.
+- Begin with the known Gemini 0.66.0 session-initialized/no-response issue in docs/KNOWN_ISSUES.md. Its actual company root cause is not established. Do not call a synthetic fixture a reproduced Enterprise service failure.
+- Never disable managed policies, read credentials, add yolo/bypass flags or silently switch provider/model to make a test pass.
+- Record verified behavior, synthetic verification and remaining company checks separately. Use doctor and opt-in synthetic live smokes; do not commit their outputs or company runtime files.
+- Update README, WORK_LOG, KNOWN_ISSUES and HANDOFF after substantive changes; README must remain the next agent's entry point.

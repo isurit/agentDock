@@ -11,8 +11,12 @@ export function classifyError(value: string): string {
   if (/quota|usage.?limit|rate.?limit|429|exhausted/i.test(value)) return 'usage_limit';
   if (/auth|oauth|login|sign.?in|401|403|credential/i.test(value)) return 'authentication_required';
   if (/permission|approval|not allowed|denied|not trusted/i.test(value)) return 'permission_required';
-  if (/network|connect|ENOTFOUND|fetch failed|timeout/i.test(value)) return 'connection_failed';
+  if (/network|connect|ENOTFOUND|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ETIMEDOUT|ENETUNREACH|fetch failed|timeout/i.test(value)) return 'connection_failed';
   return 'cli_failed';
+}
+export function classifyStderr(value: string): string {
+  const lines = value.split(/\r?\n/).filter(line => /error|fail|denied|required|unauthorized|expired|retry|ECONN|ENOTFOUND|ETIMEDOUT|EAI_AGAIN|timeout|quota|429|401|403|not supported/i.test(line) && !/loaded cached|using cached|authentication succeeded|successfully authenticated/i.test(line));
+  return classifyError(lines.slice(-5).join('\n'));
 }
 export function cliEnvironment() {
   const env = { ...process.env };
@@ -28,15 +32,18 @@ export class CliProcess {
   child: ChildProcessWithoutNullStreams;
   exited: Promise<{ code: number | null; signal: NodeJS.Signals | null }>;
   stderr = '';
+  stdoutBytes = 0;
+  stderrBytes = 0;
+  lastTransportAt = Date.now();
   private stopped?: Promise<void>;
   constructor(command: Command, args: string[], cwd: string, line: (value: Record<string, any>) => void, failure: (error: Error) => void) {
     this.child = spawn(command.file, [...(command.args ?? []), ...args], { cwd, shell: false, detached: process.platform !== 'win32', stdio: 'pipe', env: cliEnvironment() });
     let pending = '', bytes = 0;
     this.child.stdout.setEncoding('utf8'); this.child.stderr.setEncoding('utf8');
-    this.child.stderr.on('data', (chunk: string) => { this.stderr = (this.stderr + chunk).slice(-32768); });
+    this.child.stderr.on('data', (chunk: string) => { this.stderr = (this.stderr + chunk).slice(-32768); this.stderrBytes += Buffer.byteLength(chunk); this.lastTransportAt = Date.now(); });
     this.child.stdin.on('error', () => failure(new CliError('cli_transport_closed')));
     this.child.stdout.on('data', (chunk: string) => {
-      bytes += Buffer.byteLength(chunk); pending += chunk;
+      bytes += Buffer.byteLength(chunk); this.stdoutBytes = bytes; this.lastTransportAt = Date.now(); pending += chunk;
       if (bytes > 32 * 1024 * 1024 || Buffer.byteLength(pending) > 2 * 1024 * 1024) { failure(new CliError('cli_output_limit')); void this.stop(); return; }
       for (;;) {
         const index = pending.indexOf('\n'); if (index < 0) break;
@@ -76,7 +83,7 @@ export class RpcPeer {
       this.pending.delete(message.id); clearTimeout(p.timer);
       message.error ? p.reject(new CliError(classifyError(JSON.stringify(message.error)))) : p.resolve(message.result);
     }, fail);
-    void this.process.exited.then(() => fail(new CliError(classifyError(this.process.stderr))));
+    void this.process.exited.then(() => fail(new CliError(classifyStderr(this.process.stderr))));
   }
   call(method: string, params: unknown): Promise<any> {
     if (this.failure) return Promise.reject(this.failure);

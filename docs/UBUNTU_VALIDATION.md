@@ -21,3 +21,13 @@ Use only company-approved sources and synthetic inputs until local policy permit
 - Record only general result categories; do not send company paths, filenames, prompts, code, logs or raw imports to the home PC or GitHub.
 
 macOS tests and GitHub Ubuntu CI do not constitute company-environment validation.
+
+## v0.3 company continuation checklist
+
+- Read README.md and COMPANY_START.md first; preserve local changes and keep company work local.
+- Run doctor (generic version/capabilities only); do not paste company source/raw logs/paths into home feedback.
+- Run opt-in headless smoke: plain response, then synthetic attached Git history. Record actual provider/model/version and phases locally.
+- Verify the new session/model-wait/tool/result distinctions, idle diagnostics, explicit cancellation and no automatic retries.
+- Check the local Git History tab and opt-in attachment; unselected history must not be included.
+- Compare the synthetic success/failure with the original Gemini 0.66.0 project case. Root cause remains open until evidence exists.
+- Use KNOWN_ISSUES acceptance criteria. Native approvals stay enforced; do not use yolo/bypass to pass.

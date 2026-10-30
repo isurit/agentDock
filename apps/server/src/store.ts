@@ -72,7 +72,7 @@ export class Store {
     const m: Memory = { ...input, taskId: input.taskId ?? null, id: randomUUID(), source: 'user', updatedAt: now() };
     this.db.prepare('INSERT INTO memories VALUES(?,?,?,?,?,?)').run(m.id, m.projectId, m.taskId, m.content, m.source, m.updatedAt); return m;
   }
-  handoff(value: Handoff) { this.db.prepare('INSERT INTO handoffs VALUES(?,?,?,?)').run(value.id, value.taskId, value.targetRunId, JSON.stringify(value)); }
+  handoff(value: Handoff) { this.db.prepare('INSERT INTO handoffs VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data').run(value.id, value.taskId, value.targetRunId, JSON.stringify(value)); }
   handoffs(taskId: string): Handoff[] { return this.db.prepare('SELECT data FROM handoffs WHERE taskId=? ORDER BY rowid').all(taskId).map(row => JSON.parse(row.data as string)); }
   recover() {
     for (const row of this.db.prepare("SELECT id,taskId FROM runs WHERE status IN ('running','queued','awaiting_approval')").all()) {

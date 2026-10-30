@@ -22,3 +22,11 @@ References:
 - https://code.claude.com/docs/en/cli-reference
 - https://geminicli.com/docs/cli/headless/
 - https://geminicli.com/docs/cli/cli-reference/
+
+## Company report and v0.3 diagnostic support
+
+The user reports Gemini 0.66.0 creating a session but not producing an answer for a Git-history question. The actual company cause, elapsed duration and backend/model response were not established. The v0.66.0 upstream nonInteractiveCli source was inspected to distinguish init, user, assistant/tool and result events; this is source inspection, not a live Enterprise reproduction.
+
+Headless now exposes these phases, generic stderr/error categories, bounded idle/total timeouts and result-followed-by-lingering-process cleanup. Warnings remain nonfatal; permission failures remain explicit. Native plan/auto_edit settings are unchanged. Optional locally collected Git hashes/subjects can be attached without allowing CLI shell tools.
+
+Use npm run doctor, then npm run verify:headless -- --live --provider gemini on the company PC. See KNOWN_ISSUES and COMPANY_START for the precise reproduction matrix. Do not describe the adapter as fully company-verified until those live checks pass.

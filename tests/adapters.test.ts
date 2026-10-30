@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { CodexAdapter } from '../packages/agent-adapters/src/codex.ts';
-import { HeadlessAdapter } from '../packages/agent-adapters/src/headless.ts';
+import { HeadlessAdapter, timingFromEnvironment } from '../packages/agent-adapters/src/headless.ts';
 import { CliProcess } from '../packages/agent-adapters/src/process.ts';
 import { Orchestrator } from '../packages/orchestrator/src/index.ts';
 import { Store } from '../apps/server/src/store.ts';
@@ -117,4 +117,37 @@ test('Real-adapter protocol results update local Run sessions and Handoff across
     assert.equal(h.memories.length, 1); assert.ok(h.recentResults.some(e => e.data.instruction === 'Initial user direction'));
     assert.ok(f.store.events(f.task.id).some(e => e.type === 'cli.detected'));
   } finally { await f.cleanup(); }
+});
+
+const shortTiming = { idleMs: 400, progressMs: 50, cleanupMs: 80, totalMs: 5000 };
+test('Session-only and stderr-retry stalls expose phases and stop without leaking diagnostic bodies', async () => {
+  const f = await request();
+  try {
+    for (const scenario of ['session-only', 'stderr-retry']) {
+      f.events.length = 0;
+      await assert.rejects(new HeadlessAdapter('gemini', command('gemini', scenario), shortTiming).start(f.value), scenario === 'session-only' ? /cli_idle_timeout/ : /connection_failed/);
+      assert.ok(f.events.some(e => e.type === 'cli.progress' && e.data.phase === 'waiting_for_model'));
+      assert.ok(f.events.some(e => e.type === 'cli.waiting' && Number(e.data.stdoutBytes) > 0));
+      assert.ok(!JSON.stringify(f.events).includes('DO_NOT_ECHO_INPUT'));
+      assert.ok(!JSON.stringify(f.events).includes('DO_NOT_PERSIST_DIAGNOSTIC_BODY'));
+      if (scenario === 'stderr-retry') assert.ok(f.events.some(e => e.type === 'cli.diagnostic' && e.data.code === 'connection_failed'));
+    }
+  } finally { await f.cleanup(); }
+});
+test('A terminal result with lingering handles is cleaned up; recoverable warnings do not discard success', async () => {
+  const f = await request();
+  try {
+    await new HeadlessAdapter('gemini', command('gemini', 'terminal-linger'), shortTiming).start(f.value);
+    assert.ok(f.events.some(e => e.type === 'cli.cleanup')); assert.ok(f.events.some(e => e.type === 'message'));
+    f.events.length = 0;
+    await new HeadlessAdapter('gemini', command('gemini', 'warning'), shortTiming).start(f.value);
+    assert.ok(f.events.some(e => e.type === 'provider.warning')); assert.ok(f.events.some(e => e.type === 'message'));
+    await assert.rejects(new HeadlessAdapter('gemini', command('gemini', 'nonzero-after-result'), shortTiming).start(f.value), /cli_failed/);
+    await assert.rejects(new HeadlessAdapter('gemini', command('gemini', 'permission-tool'), shortTiming).start(f.value), /permission_required/);
+  } finally { await f.cleanup(); }
+});
+test('Headless inactivity timeout configuration is bounded and does not silently accept invalid values', () => {
+  assert.equal(timingFromEnvironment({}).idleMs, 180000);
+  assert.equal(timingFromEnvironment({ AGENTDOCK_CLI_IDLE_TIMEOUT_SECONDS: '300' }).idleMs, 300000);
+  for (const value of ['0', '-1', 'abc', '901', '3.5']) assert.throws(() => timingFromEnvironment({ AGENTDOCK_CLI_IDLE_TIMEOUT_SECONDS: value }), /must be an integer/);
 });

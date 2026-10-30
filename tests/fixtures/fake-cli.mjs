@@ -32,8 +32,19 @@ if (provider === 'tree') {
 } else {
   let input = ''; process.stdin.setEncoding('utf8'); process.stdin.on('data', chunk => input += chunk);
   process.stdin.on('end', () => {
-    out({ type: provider === 'gemini' ? 'init' : 'system', session_id: 'headless-synthetic' });
+    out({ type: provider === 'gemini' ? 'init' : 'system', session_id: 'headless-synthetic', model: 'synthetic-model' });
+    if (provider === 'gemini') out({ type: 'message', role: 'user', content: 'DO_NOT_ECHO_INPUT' });
+    if (scenario === 'session-only' || scenario === 'stderr-retry') {
+      setInterval(() => { if (scenario === 'stderr-retry') process.stderr.write('ECONNRESET DO_NOT_PERSIST_DIAGNOSTIC_BODY\n'); }, 20); return;
+    }
+    if (scenario === 'warning') out({ type: 'error', severity: 'warning', message: 'synthetic recoverable warning' });
+    if (scenario === 'permission-tool') {
+      out({ type: 'tool_use', tool_name: 'run_shell_command', tool_id: 'synthetic-tool' });
+      out({ type: 'tool_result', tool_id: 'synthetic-tool', status: 'error', error: { type: 'PERMISSION_DENIED', message: 'Tool approval required' } });
+    }
     out(provider === 'gemini' ? { type: 'message', role: 'assistant', content: 'synthetic result' } : { type: 'assistant', message: { content: [{ type: 'text', text: 'synthetic result' }] } });
-    if (scenario !== 'missing-result') out({ type: 'result', status: scenario === 'error' ? 'error' : 'success', is_error: scenario === 'error', result: JSON.stringify({ input, flags }), ...(scenario === 'denied' ? { permission_denials: [{ tool_name: 'Edit' }] } : {}) });
+    if (scenario !== 'missing-result') out({ type: 'result', status: scenario === 'error' ? 'error' : 'success', is_error: scenario === 'error', result: scenario === 'error' ? 'Synthetic failure' : JSON.stringify({ input, flags }), ...(scenario === 'denied' ? { permission_denials: [{ tool_name: 'Edit' }] } : {}) });
+    if (scenario === 'terminal-linger') setInterval(() => {}, 1000);
+    if (scenario === 'nonzero-after-result') process.exitCode = 1;
   });
 }
